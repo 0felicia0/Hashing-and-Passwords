@@ -23,22 +23,18 @@ def hammingDist(str1, str2):
 def flip_one_bit_binary(number):
     # Convert the number to binary representation
     binary_number = bin(number)[2:]
-
-    # Choose a random index to flip
     index_to_flip = random.randint(0, len(binary_number) - 1)
-
-    # Flip the bit at the chosen index
     flipped_bit = '1' if binary_number[index_to_flip] == '0' else '0'
-
-    # Construct the new binary number with the flipped bit
     new_binary_number = binary_number[:index_to_flip] + flipped_bit + binary_number[index_to_flip + 1:]
-
     return new_binary_number
 
 def find_collision():
     hash_to_input_map = {}
 
     while True:
+
+        #random floating point number
+        #run through hashing
         random_int = random.randint(0, 1000)  # Generate a random integer
         print("Original binary number:", bin(random_int)[2:])  # Print the original binary number
         flipped_binary = flip_one_bit_binary(random_int)
@@ -47,13 +43,11 @@ def find_collision():
         flipped_binary = str(flipped_binary)
 
         if hammingDist(random_int, flipped_binary) == 1: 
-
             # input_string = ''.join(random.choice('01') for _ in range(16))  # You can adjust the length
             #print(input_string)
             current_hash = sha256_hash_truncated(random_int, len(random_int))
 
             if current_hash in hash_to_input_map:
-                # Collision found
                 colliding_input = hash_to_input_map[current_hash]
                 print("Collision Found: ")
                 return colliding_input, random_int
