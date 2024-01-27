@@ -1,84 +1,47 @@
-import bcrypt
 import hashlib
 import random
 import struct
-# create SHA256 hash object
-# sha256 = hashlib.sha256()
 
 def sha256_hash_truncated(input_string, size):
-    return ((hashlib.sha256(str(input_string).encode()).hexdigest())[0:8])
+    return hashlib.sha256(str(input_string).encode()).hexdigest()[:size//4]
 
-#b Hamming distance is exactly 1 bit (i.e. differ in only 1 bit)
 def hammingDist(str1, str2): 
-    i = 0
-    count = 0
-
-    while(i < len(str1)): 
-        if(str1[i] != str2[i]): 
-            count += 1
-        i += 1
-    return count #needs to be exactly one
-    
-
-# def flip_one_bit_binary(number):
-#     # Convert the number to binary representation
-#     binary_number = bin(number)[2:]
-#     index_to_flip = random.randint(0, len(binary_number) - 1)
-#     flipped_bit = '1' if binary_number[index_to_flip] == '0' else '0'
-#     new_binary_number = binary_number[:index_to_flip] + flipped_bit + binary_number[index_to_flip + 1:]
-#     return new_binary_number
+    return sum(c1 != c2 for c1, c2 in zip(str1, str2))
 
 def float_to_bits(f):
-    # Convert a float to its bit representation
-    return bin(struct.unpack('>Q', struct.pack('>d', f))[0])[2:]
+    return bin(struct.unpack('>Q', struct.pack('>d', f))[0])[2:].zfill(64)
 
-def flip_one_bit(binary_string):
-    # Convert the binary string to a list of characters
-    bits_list = list(binary_string)
-    
-    # Find the index of the bit to flip (you can choose any bit)
-    flip_index = 2
-    
-    # Flip the bit at the chosen index
-    bits_list[flip_index] = '0' if bits_list[flip_index] == '1' else '1'
-    
-    # Convert the list back to a string
-    flipped_binary_string = ''.join(bits_list)
-    
-    return flipped_binary_string
+def flip_one_bit(byte_array):
+    flip_index = random.randint(0, len(byte_array) * 8 - 1)
+    byte_index, bit_index = divmod(flip_index, 8)
+    flipped_byte = byte_array[byte_index] ^ (1 << (7 - bit_index))
+    return byte_array[:byte_index] + bytes([flipped_byte]) + byte_array[byte_index + 1:]
 
 def find_collision():
     hash_to_input_map = {}
 
     while True:
+        random_bytes1 = bytearray(random.getrandbits(8) for _ in range(8))
+        #print(random_bytes1)
+        flipped_bytes1 = flip_one_bit(random_bytes1)
+        #print(flipped_bytes1, "\n")
 
-        #random floating point number 0-1
-        #run through hashing
-        random_float = random.uniform(0.1, 1)  # Generate a random float from 0 to 1
-        random_float = round(random_float, 5)
-        print("random float:", random_float)
-        bin_float = float_to_bits(random_float)
-        print("Original binary number:", bin_float)  # Print the original binary number
-        
-        flipped_bit_float = flip_one_bit(bin_float)
-        print("Binary number with one random bit flipped:", flipped_bit_float)
+        if hammingDist(random_bytes1, flipped_bytes1) == 1:
+            current_hash1 = sha256_hash_truncated(bytes(random_bytes1), len(random_bytes1))
+            print("digest:", current_hash1)
 
-        random_float = str(random_float)
-        flipped_bit_float = str(flipped_bit_float)
+            if current_hash1 in hash_to_input_map:
+                return hash_to_input_map[current_hash1], bytes(random_bytes1)
 
-        if hammingDist(random_float, flipped_bit_float) == 1: 
-            # input_string = ''.join(random.choice('01') for _ in range(16))  # You can adjust the length
-            #print(input_string)
-            current_hash = sha256_hash_truncated(random_float, len(random_float))
-
-            if current_hash in hash_to_input_map:
-                colliding_input = hash_to_input_map[current_hash]
-                #print("Collision Found: ")
-                return colliding_input, random_float
-
-            hash_to_input_map[current_hash] = random_float
-
+            hash_to_input_map[current_hash1] = bytes(random_bytes1)
 
 res1, res2 = find_collision()
+print("Collision Found:")
+print("Input 1:", res1)
+print("Input 2:", res2)
 
-print(res1, res2)
+
+
+# res3 = sha256_hash_truncated("hellogoodbye", 12)
+# res4 = sha256_hash_truncated("hellogoodaye", 12)
+# print("SHA256 digest:", res3, res4)
