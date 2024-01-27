@@ -21,7 +21,7 @@ def find_collision():
     hash_to_input_map = {}
 
     while True:
-        random_bytes1 = bytearray(random.getrandbits(8) for _ in range(8))
+        random_bytes1 = bytearray(random.getrandbits(1) for _ in range(12))
         #print(random_bytes1)
         flipped_bytes1 = flip_one_bit(random_bytes1)
         #print(flipped_bytes1, "\n")
